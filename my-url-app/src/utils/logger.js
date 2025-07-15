@@ -22,6 +22,7 @@ export async function log(stack, level, pkg, message) {
     package: pkg, // must be "package", not "pkg"
     message,
   };
+  console.log("Sending body:", JSON.stringify(logBody, null, 2));
 
   try {
     const response = await fetch(API_URL, {

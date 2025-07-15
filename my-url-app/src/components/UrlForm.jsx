@@ -8,7 +8,7 @@ function UrlForm({ setResults }) {
     e.preventDefault();
 
     if (!url || !url.startsWith("http")) {
-      log("frontend", "warn", "form", "User submitted invalid URL");
+      log("frontend", "warn", "page", "User submitted invalid URL");
       return;
     }
 
