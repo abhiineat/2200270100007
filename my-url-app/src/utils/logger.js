@@ -15,11 +15,10 @@ export async function log(stack, level, pkg, message) {
     return;
   }
 
-  // ✅ Define body BEFORE using it
   const logBody = {
     stack,
     level,
-    package: pkg, // must be "package", not "pkg"
+    package: pkg, 
     message,
   };
   console.log("Sending body:", JSON.stringify(logBody, null, 2));
