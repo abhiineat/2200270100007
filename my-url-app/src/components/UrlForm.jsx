@@ -1,68 +1,57 @@
 import React, { useState } from "react";
-import { TextField, Button, Grid } from "@mui/material";
+import { log } from "../utils/logger";
 
-function UrlForm() {
-  const [urls, setUrls] = useState([{ url: "", validity: "", shortcode: "" }]);
-  const [results, setResults] = useState([]);
-  const handleChange = (index, field, value) => {
-    const newUrls = [...urls];
-    newUrls[index][field] = value;
-    setUrls(newUrls);
-  };
-  const handleAddRow = () => {
-    if (urls.length < 5) {
-      setUrls([...urls, { url: "", validity: "", shortcode: "" }]);
+function UrlForm({ setResults }) {
+  const [url, setUrl] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!url || !url.startsWith("http")) {
+      log("frontend", "warn", "form", "User submitted invalid URL");
+      return;
     }
+
+    // 🔧 Simulate a shortened URL
+    const fakeShortUrl = `https://sho.rt/${Math.random().toString(36).substring(2, 8)}`;
+    const now = new Date();
+    const expires = new Date(now.getTime() + 60 * 60 * 1000); // +1 hour
+
+    const data = {
+      original: url,
+      short: fakeShortUrl,
+      createdAt: now.toISOString(),
+      expiresAt: expires.toISOString(),
+      clicks: 0,
+      clickDetails: [],
+    };
+
+    // 💾 Store in localStorage
+    const prev = JSON.parse(localStorage.getItem("shortenedLinks")) || [];
+    localStorage.setItem("shortenedLinks", JSON.stringify([...prev, data]));
+
+    // ✅ Update UI
+    setResults((prev) => [...prev, data]);
+    setUrl("");
+
+    // 🧾 Log it
+    log("frontend", "info", "form", "Simulated URL shortening and saved to localStorage");
   };
-  const validateURL = (str) => {
-    const pattern = new RegExp("^(https?:\\/\\/)?(www\\.)?[\\w\\-]+\\.[\\w]{2,}(\\/\\S*)?$", "i");
-    return pattern.test(str);
-  };
-  const handleSubmit = async () => {
-    const validInputs = urls.filter(u => validateURL(u.url));
-    const response = await fetch("https://your-backend/api/shorten", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(validInputs),
-    });
-    const data = await response.json();
-    setResults(data);
-  };
+
   return (
-    <Grid container spacing={2}>
-      {urls.map((item, index) => (
-        <React.Fragment key={index}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Long URL"
-              value={item.url}
-              onChange={(e) => handleChange(index, "url", e.target.value)}
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <TextField
-              label="Validity (mins)"
-              value={item.validity}
-              onChange={(e) => handleChange(index, "validity", e.target.value)}
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <TextField
-              label="Shortcode"
-              value={item.shortcode}
-              onChange={(e) => handleChange(index, "shortcode", e.target.value)}
-              fullWidth
-            />
-          </Grid>
-        </React.Fragment>
-      ))}
-      <Grid item xs={12}>
-    <Button onClick={handleAddRow}>Add another</Button>
-        <Button variant="contained" onClick={handleSubmit}>Shorten URLs</Button>
-      </Grid>
-    </Grid>
+    <form onSubmit={handleSubmit} className="mb-4">
+      <input
+        type="text"
+        placeholder="Enter URL"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        className="border px-3 py-2 w-full md:w-96"
+      />
+      <button type="submit" className="ml-2 px-4 py-2 bg-blue-500 text-white rounded">
+        Shorten
+      </button>
+    </form>
   );
 }
+
 export default UrlForm;
